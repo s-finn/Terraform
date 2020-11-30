@@ -1,0 +1,1 @@
+& 'C:\Temp\Zerto ZCA Azure Installer.exe' -s SiteName=AzureZCA1 RegionId=EastUs2 ResourceGroupName=ZertoZCA
