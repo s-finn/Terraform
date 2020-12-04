@@ -9,8 +9,8 @@ provider "azurerm" {
 
 # Create a resource group
 resource "azurerm_resource_group" "rg" {
-  name     = "ZertoZCA"
-  location = "eastus2"
+  name     = "enterrgname"
+  location = "enterregionlocation"
 }
 
 #Create Managed Identity for ZCA VM
@@ -28,7 +28,7 @@ data "azurerm_subscription" "primary" {
 
 #Create storage account for Zerto access
 resource "azurerm_storage_account" "zca-storage" {
-  name                     = "zertostorageaccountname"
+  name                     = "enterstorageaccountname"
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
@@ -59,32 +59,34 @@ resource "azurerm_role_assignment" "queue-role" {
 
 # Create virtual network
 resource "azurerm_virtual_network" "vnet" {
-  name                = "ZertovNet"
-  address_space       = ["10.0.0.0/16"]
-  location            = "eastus2"
+  name                = "entervnetname"
+  address_space       = ["enterIP"]
+  location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 }
 
 # Create subnet
 resource "azurerm_subnet" "subnet" {
-  name                 = "ZCASubnet"
+  name                 = "entersubnetname"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
+  address_prefixes     = ["enterIP"]
 }
 
 # Create public IP
+# Remove before deploying if Public IP is not wanted
 resource "azurerm_public_ip" "publicip" {
-  name                = "ZCAPublicIP"
-  location            = "eastus2"
+  name                = "enterpublicIP"
+  location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Static"
 }
 
 # Create Network Security Group and rule
+# Remove security rules if ZCA will have restricted access
 resource "azurerm_network_security_group" "nsg" {
-  name                = "ZertoNSG"
-  location            = "eastus2"
+  name                = "enterNSGName"
+  location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
   security_rule {
@@ -113,12 +115,12 @@ resource "azurerm_network_security_group" "nsg" {
 
 # Create network interface
 resource "azurerm_network_interface" "nic" {
-  name                      = "ZCANIC"
-  location                  = "eastus2"
+  name                      = "enternicname"
+  location                  = azurerm_resource_group.rg.location
   resource_group_name       = azurerm_resource_group.rg.name
 
   ip_configuration {
-    name                          = "ZCANICConfg"
+    name                          = "enterIPname"
     subnet_id                     = azurerm_subnet.subnet.id
     private_ip_address_allocation = "dynamic"
     public_ip_address_id          = azurerm_public_ip.publicip.id
@@ -127,8 +129,8 @@ resource "azurerm_network_interface" "nic" {
 
 # Create  Windows VM for ZCA
 resource "azurerm_windows_virtual_machine" "vm" {
-  name                  = "AzureZCA"
-  location              = "eastus2"
+  name                  = "enterVMname"
+  location              = azurerm_resource_group.rg.location
   resource_group_name   = azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.nic.id]
   size               = "Standard_DS3_v2"
